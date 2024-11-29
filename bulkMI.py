@@ -7,6 +7,11 @@ try:
     from numba import jit
     numba_available = True
 except ImportError:
+    #this is very ugly! but just in case Numba is not installed
+    def jit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
     numba_available = False
 
 #check for torch
@@ -134,9 +139,10 @@ def bulk_MI(D):
     # D can be a numpy array or a scipy sparse matrix or a Torch Tensor
 
     #If this is a Torch Tensor, just offload it to the torch processor
-    if type(D) is torch.Tensor: 
-        #print("This is Torch")
-        return bulk_MI_torch(D)
+    if torch_available:
+        if type(D) is torch.Tensor: 
+            #print("This is Torch")
+            return bulk_MI_torch(D)
 
     n, m = D.shape         # rows, columns
     # Calculate the Gram matrices <-only one potentially giant multiplication!

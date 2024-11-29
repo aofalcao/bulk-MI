@@ -2,6 +2,12 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import bulkMI
 
+try:
+    from numba import jit
+except ImportError:
+    print("Numba is not installed - Code is run withount JIT")
+
+
 D=np.array([[0,1,0],
             [1,0,1],
             [1,1,0],
@@ -33,7 +39,12 @@ res4 =  bulkMI.bulk_MI(Ds)
 print("Bulk Optimized Sparse")
 print(res4)
 
-import torch
-D  = bulkMI.bulk_MI(torch.tensor(D, dtype=int))
-print("Bulk Torch")
-print(res4)
+
+try:
+    import torch
+    D  = bulkMI.bulk_MI(torch.tensor(D, dtype=int))
+    print("Bulk Torch")
+    print(res4)
+    
+except ImportError:
+    print("PyTorch is not installed. Test not run")
