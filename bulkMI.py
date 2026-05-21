@@ -1,6 +1,13 @@
 import numpy as np
-from scipy.sparse import csr_matrix, issparse
-from sklearn.metrics import mutual_info_score
+
+try:
+    from scipy.sparse import csr_matrix, issparse
+    TEST_SPARSE=True
+except ImportError:
+    print("Sparse matrices not available for processing. If needed, please install scipy")
+    TEST_SPARSE=False
+    
+
 
 #check for numba
 try:
@@ -23,6 +30,12 @@ except ImportError:
     
 
 def pairwise_MI(D):
+    #this can only run if sklearn is installed:
+    try: 
+        from sklearn.metrics import mutual_info_score
+    except:
+        print("To run the slow pairwise_MI with scikit-learn, you need to have scikit-learn installed")
+        return np.array([])
     n, m = D.shape
     s=1/np.log(2)
     mi_mat=np.ones((m,m))
@@ -149,13 +162,17 @@ def bulk_MI(D):
     
     N = np.ones((m,m))*n   # helping matrices for speeding up computations
     v  = D.sum(axis=0)       # vector with number of 1s in each column
-    if issparse(D):
-        #print("This is Sparse")
-        gram_11 = (D.T @ D).toarray()
-        v  = np.array(v)
+    if TEST_SPARSE==True:
+        if issparse(D):
+            #print("This is Sparse")
+            gram_11 = (D.T @ D).toarray()
+            v  = np.array(v)
+        else:
+            gram_11 = gram_matrix( D.T,  D )
     else:
         gram_11 = gram_matrix( D.T,  D )
-        
+
+    
     C = np.ones((m, 1)) * v     
 
     gram_00 =  (N - C - C.T + gram_11) #this may seem silly, but should be MUCH faster, especially for sparse matrices
